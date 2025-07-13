@@ -1,0 +1,177 @@
+﻿@model Trabajador
+
+<form id="formTrabajador" method="post" asp-action="@(Model.Id == 0 ? "Crear" : "Editar")">
+    <div class="modal-header">
+        <h5 class="modal-title">@((Model.Id == 0) ? "Agregar Trabajador" : "Editar Trabajador")</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+    </div>
+    <div class="modal-body row g-3">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="col-md-4">
+            <label class="form-label">Tipo Documento</label>
+            @* <input asp-for="TipoDocumento" class="form-control" /> *@
+            <select asp-for="TipoDocumento" class="form-select">
+                <option value="">-- Seleccione --</option>
+                <option value="DNI">DNI</option>
+                <option value="RUC">RUC</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Número Documento</label>
+            <input asp-for="NumeroDocumento" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Nombres</label>
+            <input asp-for="Nombres" class="form-control" />
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Sexo</label>
+            <select asp-for="Sexo" class="form-select">
+                <option value="">-- Seleccione --</option>
+                <option value="M">Masculino</option>
+                <option value="F">Femenino</option>
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Departamento</label>
+            <select asp-for="IdDepartamento" class="form-select" id="departamento">
+                <option value="">-- Seleccione --</option>
+                @foreach (var d in ViewBag.Departamentos as List<Departamento>)
+                {
+                    //<option value="@d.Id" @(Model.IdDepartamento == d.Id ? "selected" : "")>@d.NombreDepartamento</option>
+                    <option value="@d.Id">@d.NombreDepartamento</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Provincia</label>
+            <select asp-for="IdProvincia" class="form-select" id="provincia">
+                <option value="">-- Seleccione --</option>
+                @if (ViewBag.Provincias != null)
+                {
+                    foreach (var p in ViewBag.Provincias as List<Provincia>)
+                    {
+                        //<option value="@p.Id" @(Model.IdProvincia == p.Id ? "selected" : "")>@p.NombreProvincia</option>
+                        <option value="@p.Id">@p.NombreProvincia</option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Distrito</label>
+            <select asp-for="IdDistrito" class="form-select" id="distrito">
+                <option value="">-- Seleccione --</option>
+                @if (ViewBag.Distritos != null)
+                {
+                    foreach (var d in ViewBag.Distritos as List<Distrito>)
+                    {
+                        <option value="@d.Id">@d.NombreDistrito</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-success" id="btnGuardar">
+            <i class="bi bi-save"></i> Guardar
+        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-circle"></i> Cerrar
+        </button>
+    </div>
+</form>
+
+    <script>
+    function refrescarTabla() {
+        debugger
+        $.get('/Trabajadores/TablaParcial', function (html) {
+            $('#contenedorTabla').html(html);
+
+            // Reaplicar DataTables después de refrescar
+            $('#tablaTrabajadores1').DataTable({
+                pageLength: 10,
+                lengthChange: false,
+                language: {
+                    search: "Buscar:",
+                    paginate: {
+                        next: "Siguiente",
+                        previous: "Anterior"
+                    },
+                    zeroRecords: "No se encontraron registros",
+                    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                    infoEmpty: "No hay registros disponibles",
+                    infoFiltered: "(filtrado de _MAX_ registros totales)"
+                }
+            });
+        });
+    }
+
+        $(document).ready(function () {
+        debugger
+            $('#formTrabajador').on('submit', function () {
+                var form = $(this);
+                if (form.valid()) {
+                    const btn = $('#btnGuardar');
+                    btn.prop('disabled', true);
+                    btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...');
+                }
+            });
+        });
+
+        $('#departamento').change(function () {
+            debugger
+            const id = $(this).val();
+            $('#provincia').empty().append('<option value="">-- Cargando... --</option>');
+            $('#distrito').empty().append('<option value="">-- Seleccione --</option>');
+
+            $.get(`/Trabajadores/ProvinciasPorDepartamento?idDepartamento=${id}`, function (data) {
+                $('#provincia').empty().append('<option value="">-- Seleccione --</option>');
+                data.forEach(p => {
+                    $('#provincia').append(`<option value="${p.id}">${p.nombreProvincia}</option>`);
+                });
+            });
+        });
+
+        $('#provincia').change(function () {
+            debugger
+            const id = $(this).val();
+            $('#distrito').empty().append('<option value="">-- Cargando... --</option>');
+
+            $.get(`/Trabajadores/DistritosPorProvincia?idProvincia=${id}`, function (data) {
+                $('#distrito').empty().append('<option value="">-- Seleccione --</option>');
+                data.forEach(d => {
+                    $('#distrito').append(`<option value="${d.id}">${d.nombreDistrito}</option>`);
+                });
+            });
+        });
+
+        $('#formTrabajador').submit(function (e) {
+            debugger
+            e.preventDefault();
+            const form = $(this);
+            $.ajax({
+                type: 'POST',
+                url: form.attr('action') || window.location.pathname,
+                data: form.serialize(),
+                success: function (res) {
+                    if (res.success) {
+                        refrescarTabla();
+                        //$('#modalContenido').html(res);
+                        $('#modalCrear').modal('hide');
+                        //location.reload();
+                    } else {
+                        $('#modalContenido').html(res);
+                    }
+                }
+            });
+        });
+    </script>
+
+
+

@@ -1,0 +1,191 @@
+﻿@model List<TrabajadorDto>
+@{
+    ViewData["Title"] = "Listado de Trabajadores";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+<button id="btnRefrescar" class="btn btn-secondary">🔄 Refrescar Tabla</button>
+
+<div class="container mt-4" id="tablaTrabajadores">
+    <h2 class="mb-4">Listado de Trabajadores</h2>
+
+    <div class="mb-3 d-flex justify-content-between">
+        <div>
+            <select id="filtroSexo" class="form-select">
+                <option value="">-- Filtrar por Sexo --</option>
+                <option value="M">Masculino</option>
+                <option value="F">Femenino</option>
+            </select>
+        </div>
+        
+        <button class="btn btn-success" onclick="abrirCrear()">Agregar Trabajador</button>
+        
+
+    </div>
+
+    <div id="contenedorTabla">
+        @Html.Partial("_TablaParcial", Model)
+    </div>
+</div>
+
+<!-- Modal de Formulario -->
+<div class="modal fade" id="modalCrear" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" id="modalContenido">
+            <!-- Aquí se carga el formulario parcial _FormModal.cshtml -->
+        </div>
+    </div>
+</div>
+
+<div id="alertContainer"></div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+
+    <script>
+        function recargarModal(url) {
+            $.get(url, function (html) {
+                $("#modalContenido").html(html);
+                var modal = new bootstrap.Modal(document.getElementById('modalCrear'));
+                modal.show();
+            });
+        }
+
+        function editar(id) {
+            debugger
+            var url = `/Trabajadores/Editar?id=${id}`
+            //recargarModal('/Trabajadores/Editar/' + id);
+            $.get(url, function (html) {
+                $("#modalContenido").html(html);
+                var modal = new bootstrap.Modal(document.getElementById('modalCrear'));
+                modal.show();
+            });
+            //refrescarTabla();
+        }
+
+        // function eliminar(id) {
+        //     debugger
+        //     if (confirm("¿Está seguro de eliminar el registro 1?")) {
+        //         window.location.href = '/Trabajadores/Eliminar/' + id;
+        //     }
+        // }
+
+
+        function abrirCrear() {
+            $.get('/Trabajadores/Crear', function (html) {
+                $("#modalContenido").html(html);
+                var modal = new bootstrap.Modal(document.getElementById('modalCrear'));
+                modal.show();
+            });
+        }
+
+        function refrescarTabla() {
+            debugger
+            $.get('/Trabajadores/TablaParcial', function (html) {
+                $('#contenedorTabla').html(html);
+
+                // Reaplicar DataTables después de refrescar
+                $('#tablaTrabajadores1').DataTable({
+                    pageLength: 10,
+                    lengthChange: false,
+                    language: {
+                        search: "Buscar:",
+                        paginate: {
+                            next: "Siguiente",
+                            previous: "Anterior"
+                        },
+                        zeroRecords: "No se encontraron registros",
+                        info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                        infoEmpty: "No hay registros disponibles",
+                        infoFiltered: "(filtrado de _MAX_ registros totales)"
+                    }
+                });
+            });
+        }
+
+        $(document).ready(function () {
+            $('#filtroSexo').on('change', function () {
+                const valor = $(this).val();
+                $('#tablaTrabajadores tbody tr').each(function () {
+                    const sexo = $(this).data('sexo');
+                    $(this).toggle(valor === "" || sexo === valor);
+                });
+            });
+
+            // $('#tablaTrabajadores').on('click', '.btn-eliminar', function () {
+            //     var id = $(this).data('id');
+            //     if (confirm("¿Está seguro de eliminar el registro 2?")) {
+            //         debugger
+            //         $.ajax({
+            //             //url: `/Trabajadores/Eliminar/${id}`,
+            //             url: `/Trabajadores/Eliminar?id=${id}`,
+            //             type: 'GET',
+            //             success: function () {
+            //                 //location.reload();
+            //                 //$('#tablaTrabajadores1').DataTable().ajax.reload();
+            //                 // Recargar tabla
+            //                 $('#tablaTrabajadores').load(location.href + ' #tablaTrabajadores>*', '');
+
+            //                 // Mostrar alerta de éxito
+            //                 $('#alertContainer').html(`
+            //                     <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
+            //                         Registro eliminado exitosamente.
+            //                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            //                     </div>
+            //                 `);
+            //             }
+            //         });
+            //     }
+            // });
+
+            $('#btnRefrescar').click(function () {
+                refrescarTabla();
+            });
+
+            $('#tablaTrabajadores1').on('click', '.btn-eliminar', function () {
+                debugger
+                var id = $(this).data('id');
+                if (confirm("¿Está seguro de eliminar el registro?")) {
+                    $.ajax({
+                        url: `/Trabajadores/Eliminar?id=${id}`,
+                        type: 'GET',
+                        success: function () {
+                            debugger
+                            refrescarTabla();
+
+                            $('#alertContainer').html(`
+                                <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
+                                    Registro eliminado exitosamente.
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                                </div>
+                            `);
+                        }
+                    });
+                }
+            });
+
+
+            $('#tablaTrabajadores1').DataTable({
+                "pageLength": 10,
+                "lengthChange": false,
+                "language": {
+                    "search": "Buscar:",
+                    "paginate": {
+                        "next": "Siguiente",
+                        "previous": "Anterior"
+                    },
+                    "zeroRecords": "No se encontraron registros",
+                    "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+                    "infoEmpty": "No hay registros disponibles",
+                    "infoFiltered": "(filtrado de _MAX_ registros totales)"
+                }
+            });
+        });
+    </script>
+}
