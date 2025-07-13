@@ -118,12 +118,12 @@ namespace Prueba_Myper.Controllers
         [HttpPost]
         public async Task<IActionResult> Editar(Trabajador model)
         {
-            if (ModelState.IsValid)
-            {
+            //if (ModelState.IsValid)
+            //{
                 _context.Update(model);
                 await _context.SaveChangesAsync();
                 return Json(new { success = true });
-            }
+            //}
             ViewBag.Departamentos = await _context.Departamentos.ToListAsync();
             ViewBag.Provincias = model.IdDepartamento.HasValue ? await _context.Provincias.Where(p => p.IdDepartamento == model.IdDepartamento).ToListAsync() : new List<Provincia>();
             ViewBag.Distritos = model.IdProvincia.HasValue ? await _context.Distritos.Where(d => d.IdProvincia == model.IdProvincia).ToListAsync() : new List<Distrito>();
