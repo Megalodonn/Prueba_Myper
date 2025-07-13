@@ -66,15 +66,8 @@
                 var modal = new bootstrap.Modal(document.getElementById('modalCrear'));
                 modal.show();
             });
-            //refrescarTabla();
+            
         }
-
-        // function eliminar(id) {
-        //     debugger
-        //     if (confirm("¿Está seguro de eliminar el registro 1?")) {
-        //         window.location.href = '/Trabajadores/Eliminar/' + id;
-        //     }
-        // }
 
 
         function abrirCrear() {
@@ -118,37 +111,12 @@
                 });
             });
 
-            // $('#tablaTrabajadores').on('click', '.btn-eliminar', function () {
-            //     var id = $(this).data('id');
-            //     if (confirm("¿Está seguro de eliminar el registro 2?")) {
-            //         debugger
-            //         $.ajax({
-            //             //url: `/Trabajadores/Eliminar/${id}`,
-            //             url: `/Trabajadores/Eliminar?id=${id}`,
-            //             type: 'GET',
-            //             success: function () {
-            //                 //location.reload();
-            //                 //$('#tablaTrabajadores1').DataTable().ajax.reload();
-            //                 // Recargar tabla
-            //                 $('#tablaTrabajadores').load(location.href + ' #tablaTrabajadores>*', '');
-
-            //                 // Mostrar alerta de éxito
-            //                 $('#alertContainer').html(`
-            //                     <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
-            //                         Registro eliminado exitosamente.
-            //                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-            //                     </div>
-            //                 `);
-            //             }
-            //         });
-            //     }
-            // });
 
             $('#btnRefrescar').click(function () {
                 refrescarTabla();
             });
 
-            $('#tablaTrabajadores1').on('click', '.btn-eliminar', function () {
+            $(document).on('click', '.btn-eliminar', function () {
                 debugger
                 var id = $(this).data('id');
                 if (confirm("¿Está seguro de eliminar el registro?")) {
